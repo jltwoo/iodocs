@@ -6,7 +6,8 @@
         "publicPath": "/v2",
         "headers" : {},
         "auth": "key",
-        "keyParam": "key"
+        "keyParam": "key",
+        "enableCookie": true
     },
     "usatoday": {
         "name": "USA TODAY Census API",

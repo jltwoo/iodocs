@@ -837,6 +837,13 @@ function processRequest(req, res, next) {
             options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
 
+        if (apiConfig.enableCookie) {
+          if (config.debug) {
+            console.log("enabled cookies")
+          }
+          options.headers['Cookie'] = req.headers.cookie;
+        }
+
         if (config.debug) {
             console.log(util.inspect(options));
         };
@@ -888,6 +895,12 @@ function processRequest(req, res, next) {
                 req.resultHeaders = response.headers;
                 req.call = url.parse(options.host + options.path);
                 req.call = url.format(req.call);
+
+
+                if (apiConfig.enableCookie && req.resultHeaders['set-cookie']) {
+                  var cookie = parseCookie(req.resultHeaders['set-cookie'][0]);
+                  res.cookie(cookie.key, cookie.value, cookie.options);
+                }
 
                 // Response body
                 req.result = body;
@@ -1008,4 +1021,20 @@ if (!module.parent) {
     l.on('listening', function(err) {
         console.log("Express server listening on port %d", port);
     });
+}
+
+function parseCookie(rc) {
+  var list = {options: {}};
+
+  rc && rc.split(';').forEach(function( cookie, index) {
+    var parts = cookie.split('=');
+    if (index == 0) {
+      list.key = parts.shift().trim();
+      list.value = decodeURIComponent(parts.join('='));
+    } else {
+      list.options[parts.shift().trim()] = decodeURIComponent(parts.join('='));
+    }
+  });
+
+  return list;
 }
