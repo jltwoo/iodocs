@@ -1016,40 +1016,27 @@ function checkPathForAPI(req, res, next) {
 
 // Replaces deprecated app.dynamicHelpers that were dropped in Express 3.x
 // Passes variables to the view
-function dynamicHelpers(req, res, next) {
+function dynamicHelpers(req, res, next){
     if (req.params.api) {
         res.locals.apiInfo = apisConfig[req.params.api];
         res.locals.apiName = req.params.api;
         res.locals.apiDefinition = JSON.parse(JSON.minify(fs.readFileSync(path.join(config.apiConfigDir, req.params.api + '.json'), 'utf8')));
 
+        var apiDefData = getData(req.params.api);
+        processApiIncludes(apiDefData, req.params.api);
+        cachedApiInfo = apiDefData;
+
         // If the cookie says we're authed for this particular API, set the session to authed as well
         if (req.session[req.params.api] && req.session[req.params.api]['authed']) {
             req.session['authed'] = true;
         }
-
-        return req.session;
-    },
-    apiInfo: function(req, res) {
-        if (req.params.api) {
-            return apisConfig[req.params.api];
-        } else {
-            return apisConfig;
-        }
-    },
-    apiName: function(req, res) {
-        if (req.params.api) {
-            return req.params.api;
-        }
-    },
-    apiDefinition: function(req, res) {
-        if (req.params.api) {
-            var data = getData(req.params.api);
-            processApiIncludes(data, req.params.api);
-            cachedApiInfo = data;
-            return data;
-        }
+    } else {
+        res.locals.apiInfo = apisConfig;
     }
-});
+
+    res.locals.session = req.session;
+    next();
+}
 
 /*
    Can be called in the following ways:
@@ -1117,7 +1104,8 @@ function getData(api, passedPath) {
             return require(pathy.resolve(__dirname + '/public/data/' , passedPath));
         }
         else {
-            return require(__dirname + '/public/data/' + api + '.json');
+            var tmp = JSON.parse(JSON.minify(fs.readFileSync(path.join(config.apiConfigDir, api + '.json'), 'utf8'))); 
+            return tmp;
         }
     }
     else {
