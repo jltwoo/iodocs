@@ -138,7 +138,7 @@ if (config.https && config.https.on && config.https.keyPath && config.https.cert
         process.exit(1);
     }
 
-    app = module.exports = express.createServer({
+    app = module.exports = express({
         key: httpsKey,
         cert: httpsCert        
     });
@@ -149,7 +149,7 @@ else if (config.https && config.https.on) {
     process.exit(1);
 }
 else {
-    app = module.exports = express.createServer();
+    app = module.exports = express();
 }
 
 if (process.env.REDISTOGO_URL) {
@@ -169,6 +169,7 @@ app.configure(function() {
 if(config.redis) {
     app.use(express.session({
         secret: config.sessionSecret,
+        key:"iodocs.connect.sid",
         store:  new RedisStore({
             'host':   config.redis.host,
             'port':   config.redis.port,
@@ -968,6 +969,7 @@ function processRequest(req, res, next) {
 
 
                 if (apiConfig.enableCookie && req.resultHeaders['set-cookie']) {
+                    console.log("HERE");
                   var cookie = parseCookie(req.resultHeaders['set-cookie'][0]);
                   res.cookie(cookie.key, cookie.value, cookie.options);
                 }
