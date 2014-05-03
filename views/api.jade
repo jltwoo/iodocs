@@ -1,21 +1,26 @@
+include mixins/content_parameters
 extends layout
 block content
   h1=apiInfo.name
   - if (session.authed && apiInfo.oauth && apiInfo.oauth.type =='three-legged')
       - var authed ='authed'
-  - else if (session.authed && apiInfo.oauth2)
-      - var authed ='authed'
   - else
       - var authed =''
 
-  form#credentials
-      input(type='hidden', name='apiName', value=apiName)
-      - if (apiInfo.auth)
-          section(class='credentials ' + authed)
-              - if (apiInfo.oauth)
-                  input(type='hidden', name='oauth', value='authrequired')
-              - else if (apiInfo.oauth2)
-                  input(type='hidden', name='oauth2', value='authrequired')
+
+form#credentials
+    input(type='hidden', name='apiName', value=apiName)
+    - if (apiInfo.auth) 
+        section(class='credentials ' + authed)
+         - if (authed && apiInfo.oauth)
+             span Authenticated with OAuth
+             img(src='/images/accept.png')
+         - else
+             h2 API Credentials
+               img(src='/images/key.png')
+
+             - if (apiInfo.oauth)
+                 input(type='hidden', name='oauth', value='authrequired')
 
               - if (apiInfo.auth.defaultKey)
                   - var defaultKey =apiInfo.auth.defaultKey
@@ -54,6 +59,12 @@ block content
                       document.getElementById('oauthAuthenticated').style.display = 'block';
 
 
+  br
+  div
+      form#searchForm
+          label(for='search1') Search&nbsp;
+          input(id='search1')
+      a#clear-search(href='#') Clear search
   div(id='controls')
       ul
           li
@@ -183,5 +194,20 @@ block content
                                                           a(href='#', class='remove') Remove
                                           a(href='#', class='add-headers') Add Header
                                       // Create header fields and button to add/remove headers.
+                              - if (method.content)
+                                  div.content
+                                      h4.title
+                                          div.indicator
+                                          span Content
+                                      - if (method.content.parameters != undefined)
+                                          - if (method.content.parameters.length > 0)
+                                              mixin content(apiInfo, method.content.parameters)
+                                      div.contentType
+                                          select(name='contentType')
+                                              - each choice in method.content.contentType
+                                                  option(value=choice) #{choice}
+                                      div.fields
+                                          textarea(columns='80', rows='10', id='requestContent', name='requestContent', placeholder='{}')
+                                          pre(class='requestContent prettyprint')
                               - if (!method['read-only'])
                                   input(type='submit', id=method.MethodName, value='Try it!')

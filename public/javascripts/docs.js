@@ -178,9 +178,6 @@
             })
         }
     });
-    
-    // $.('#access_token').val(foo);
-
 
     /*
         Try it! button. Submits the method params, apikey and secret if any, and apiName
